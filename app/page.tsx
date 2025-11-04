@@ -1,10 +1,185 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Camera, MessageCircle, Zap, ChevronRight, Star, CheckCircle } from 'lucide-react';
+import { Sparkles, Camera, MessageCircle, Zap, ChevronRight, Star, CheckCircle, Filter, Search, ExternalLink, TrendingUp } from 'lucide-react';
+
+type Product = {
+  id: string;
+  name: string;
+  brand: string;
+  price: string;
+  rating: number;
+  reviews: number;
+  image: string;
+  url: string;
+  category: string;
+  skinType: string[];
+  concern: string[];
+  featured?: boolean;
+};
+
+const PRODUCTS: Product[] = [
+  {
+    id: "1",
+    name: "Foaming Facial Cleanser",
+    brand: "CeraVe",
+    price: "$14.99",
+    rating: 4.6,
+    reviews: 12450,
+    image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop",
+    url: "https://www.cerave.com/skincare/cleansers/foaming-facial-cleanser",
+    category: "Cleanser",
+    skinType: ["oily", "combination", "normal"],
+    concern: ["acne", "pores"],
+    featured: true
+  },
+  {
+    id: "2",
+    name: "Hyaluronic Acid 2% + B5",
+    brand: "The Ordinary",
+    price: "$7.99",
+    rating: 4.4,
+    reviews: 8920,
+    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&h=400&fit=crop",
+    url: "https://theordinary.com/en-us/hyaluronic-acid-2-b5-hydration-support-serum-100419.html",
+    category: "Serum",
+    skinType: ["all"],
+    concern: ["dryness", "fine-lines"],
+    featured: true
+  },
+  {
+    id: "3",
+    name: "Anthelios UV Melt-in Milk SPF 60",
+    brand: "La Roche-Posay",
+    price: "$35.99",
+    rating: 4.7,
+    reviews: 15630,
+    image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&h=400&fit=crop",
+    url: "https://www.laroche-posay.us/our-products/sun/face-sunscreen/anthelios-melt-in-milk-sunscreen-spf-60-3606000437449.html",
+    category: "Sunscreen",
+    skinType: ["all"],
+    concern: ["sun-protection"],
+    featured: true
+  },
+  {
+    id: "4",
+    name: "Daily Moisturizing Lotion",
+    brand: "CeraVe",
+    price: "$16.99",
+    rating: 4.6,
+    reviews: 18920,
+    image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop",
+    url: "https://www.cerave.com/skincare/moisturizers/daily-moisturizing-lotion",
+    category: "Moisturizer",
+    skinType: ["dry", "normal", "sensitive"],
+    concern: ["dryness", "sensitivity"]
+  },
+  {
+    id: "5",
+    name: "Niacinamide 10% + Zinc 1%",
+    brand: "The Ordinary",
+    price: "$5.99",
+    rating: 4.3,
+    reviews: 11240,
+    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&h=400&fit=crop",
+    url: "https://theordinary.com/en-us/niacinamide-10-zinc-1-oil-control-serum-100436.html",
+    category: "Serum",
+    skinType: ["oily", "combination"],
+    concern: ["pores", "acne", "texture"]
+  },
+  {
+    id: "6",
+    name: "C E Ferulic",
+    brand: "SkinCeuticals",
+    price: "$169.00",
+    rating: 4.8,
+    reviews: 5680,
+    image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&h=400&fit=crop",
+    url: "https://www.skinceuticals.com/c-e-ferulic-635494263008.html",
+    category: "Serum",
+    skinType: ["all"],
+    concern: ["aging", "fine-lines", "brightness"],
+    featured: true
+  },
+  {
+    id: "7",
+    name: "Skin Perfecting 2% BHA Liquid",
+    brand: "Paula's Choice",
+    price: "$32.00",
+    rating: 4.5,
+    reviews: 9870,
+    image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop",
+    url: "https://www.paulaschoice.com/skin-perfecting-2pct-bha-liquid-exfoliant/201.html",
+    category: "Treatment",
+    skinType: ["oily", "combination", "acne-prone"],
+    concern: ["acne", "pores", "texture"]
+  },
+  {
+    id: "8",
+    name: "Retinol 0.5% in Squalane",
+    brand: "The Ordinary",
+    price: "$9.99",
+    rating: 4.2,
+    reviews: 7450,
+    image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&h=400&fit=crop",
+    url: "https://theordinary.com/en-us/retinol-0-5-in-squalane-age-support-serum-100383.html",
+    category: "Treatment",
+    skinType: ["normal", "dry"],
+    concern: ["aging", "fine-lines", "texture"]
+  }
+];
+
+function ProductCard({ product }: { product: Product }) {
+  return (
+    <div className="group bg-white rounded-2xl overflow-hidden border-2 border-gray-100 hover:border-pink-300 hover:shadow-xl transition-all duration-300">
+      {product.featured && (
+        <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-bold px-3 py-1 flex items-center gap-1">
+          <TrendingUp className="w-3 h-3" />
+          TRENDING
+        </div>
+      )}
+      <div className="aspect-square bg-gray-50 overflow-hidden relative">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+      </div>
+      <div className="p-5">
+        <div className="text-xs text-gray-500 mb-1 font-medium">{product.brand}</div>
+        <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors">
+          {product.name}
+        </h3>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-semibold">{product.rating}</span>
+          </div>
+          <span className="text-xs text-gray-400">({product.reviews.toLocaleString()})</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="text-xl font-bold text-pink-600">{product.price}</div>
+          <a
+            href={product.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full text-sm font-medium hover:shadow-lg transition-all flex items-center gap-1"
+          >
+            View
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function SkincareLanding() {
   const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedSkinType, setSelectedSkinType] = useState<string>("all");
+  const [selectedConcern, setSelectedConcern] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setIsVisible(true);
@@ -12,6 +187,39 @@ export default function SkincareLanding() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const categories = ["All", "Cleanser", "Serum", "Moisturizer", "Sunscreen", "Treatment"];
+  const skinTypes = [
+    { value: "all", label: "All Skin Types" },
+    { value: "oily", label: "Oily" },
+    { value: "dry", label: "Dry" },
+    { value: "combination", label: "Combination" },
+    { value: "sensitive", label: "Sensitive" },
+    { value: "normal", label: "Normal" }
+  ];
+  const concerns = [
+    { value: "all", label: "All Concerns" },
+    { value: "acne", label: "Acne" },
+    { value: "aging", label: "Anti-Aging" },
+    { value: "dryness", label: "Dryness" },
+    { value: "pores", label: "Large Pores" },
+    { value: "brightness", label: "Brightness" },
+    { value: "sensitivity", label: "Sensitivity" }
+  ];
+
+  const filteredProducts = PRODUCTS.filter(product => {
+    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    const matchesSkinType = selectedSkinType === "all" || 
+      product.skinType.includes(selectedSkinType) || 
+      product.skinType.includes("all");
+    const matchesConcern = selectedConcern === "all" || 
+      product.concern.includes(selectedConcern);
+    const matchesSearch = searchQuery === "" || 
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.brand.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesCategory && matchesSkinType && matchesConcern && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 overflow-hidden">
@@ -28,8 +236,8 @@ export default function SkincareLanding() {
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-gray-600 hover:text-pink-600 transition-colors">Features</a>
+            <a href="#products" className="text-gray-600 hover:text-pink-600 transition-colors">Products</a>
             <a href="#how" className="text-gray-600 hover:text-pink-600 transition-colors">How it Works</a>
-            <a href="#testimonials" className="text-gray-600 hover:text-pink-600 transition-colors">Reviews</a>
             <button className="px-6 py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-medium hover:shadow-lg hover:scale-105 transition-all">
               <a href="/signup">Get Started</a>
             </button>
@@ -107,8 +315,120 @@ export default function SkincareLanding() {
         </div>
       </section>
 
+      {/* AI Product Selection Section */}
+      <section id="products" className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full text-purple-600 text-sm font-medium mb-4">
+              <Sparkles className="w-4 h-4" />
+              AI-Curated Selection
+            </div>
+            <h2 className="text-5xl font-bold mb-4">
+              Discover Your Perfect <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Products</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Our AI analyzes your preferences to recommend the best skincare products for you
+            </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="mb-8 max-w-2xl mx-auto">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products or brands..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none text-lg"
+              />
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="mb-8 space-y-6">
+            {/* Category Pills */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-semibold text-gray-600">CATEGORY</span>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-6 py-2.5 rounded-full font-medium transition-all ${
+                      selectedCategory === cat
+                        ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg scale-105'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* AI Smart Filters */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-600 mb-2 block">SKIN TYPE</label>
+                <select
+                  value={selectedSkinType}
+                  onChange={(e) => setSelectedSkinType(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none font-medium"
+                >
+                  {skinTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-600 mb-2 block">SKIN CONCERN</label>
+                <select
+                  value={selectedConcern}
+                  onChange={(e) => setSelectedConcern(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-400 focus:outline-none font-medium"
+                >
+                  {concerns.map((concern) => (
+                    <option key={concern.value} value={concern.value}>
+                      {concern.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Results Count */}
+          <div className="mb-6 text-gray-600 font-medium">
+            Showing <span className="text-pink-600 font-bold">{filteredProducts.length}</span> products
+          </div>
+
+          {/* Product Grid */}
+          {filteredProducts.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-10 h-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">No products found</h3>
+              <p className="text-gray-600">Try adjusting your filters or search query</p>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Features Section */}
-      <section id="features" className="py-20 px-6 bg-white">
+      <section id="features" className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-5xl font-bold mb-4">
