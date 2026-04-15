@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useRef, useState, useMemo } from "react";
-import { Send, Paperclip, Mic, Sparkles, MessageCircle, Loader2, ExternalLink, Star } from "lucide-react";
+import { Send, Paperclip, Mic, Sparkles, MessageCircle, Loader2, ExternalLink, Star, ShoppingBag } from "lucide-react";
 
 type Product = {
   id: string;
   name: string;
   brand: string;
+  category: string;
+  description: string;
   price: string;
-  rating: number;
-  image: string;
+  avgRating: number;
   url: string;
 };
 
@@ -21,213 +22,40 @@ type ChatItem = {
   createdAt: number;
 };
 
-// Sample product database - you can replace this with real data
-const PRODUCT_DATABASE: Record<string, Product[]> = {
-  cleanser: [
-    {
-      id: "1",
-      name: "Gentle Foaming Cleanser",
-      brand: "CeraVe",
-      price: "$14.99",
-      rating: 4.5,
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop",
-      url: "https://www.cerave.com/skincare/cleansers/foaming-facial-cleanser"
-    },
-    {
-      id: "2",
-      name: "Hydrating Cleanser",
-      brand: "La Roche-Posay",
-      price: "$17.99",
-      rating: 4.7,
-      image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=300&h=300&fit=crop",
-      url: "https://www.laroche-posay.us/our-products/face/face-wash/toleriane-hydrating-gentle-cleanser-3337875545825.html"
-    }
-  ],
-  moisturizer: [
-    {
-      id: "3",
-      name: "Daily Moisturizing Lotion",
-      brand: "CeraVe",
-      price: "$16.99",
-      rating: 4.6,
-      image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=300&h=300&fit=crop",
-      url: "https://www.cerave.com/skincare/moisturizers/daily-moisturizing-lotion"
-    },
-    {
-      id: "4",
-      name: "Ultra Facial Cream",
-      brand: "Kiehl's",
-      price: "$32.00",
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop",
-      url: "https://www.kiehls.com/skincare/face-moisturizers/ultra-facial-cream/622.html"
-    }
-  ],
-  serum: [
-    {
-      id: "5",
-      name: "Hyaluronic Acid Serum",
-      brand: "The Ordinary",
-      price: "$7.99",
-      rating: 4.4,
-      image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=300&h=300&fit=crop",
-      url: "https://theordinary.com/en-us/hyaluronic-acid-2-b5-hydration-support-serum-100419.html"
-    },
-    {
-      id: "6",
-      name: "Vitamin C Serum",
-      brand: "Skinceuticals",
-      price: "$169.00",
-      rating: 4.9,
-      image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=300&h=300&fit=crop",
-      url: "https://www.skinceuticals.com/c-e-ferulic-635494263008.html"
-    }
-  ],
-  sunscreen: [
-    {
-      id: "7",
-      name: "Ultra-Light Sunscreen SPF 50",
-      brand: "La Roche-Posay",
-      price: "$35.99",
-      rating: 4.7,
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop",
-      url: "https://www.laroche-posay.us/our-products/sun/face-sunscreen/anthelios-melt-in-milk-sunscreen-spf-60-3606000437449.html"
-    },
-    {
-      id: "8",
-      name: "Hydrating Mineral Sunscreen SPF 30",
-      brand: "CeraVe",
-      price: "$16.99",
-      rating: 4.5,
-      image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=300&h=300&fit=crop",
-      url: "https://www.cerave.com/skincare/sunscreen/hydrating-mineral-sunscreen-spf-30-face-sheer-tint"
-    }
-  ],
-  acne: [
-    {
-      id: "9",
-      name: "Salicylic Acid Cleanser",
-      brand: "Paula's Choice",
-      price: "$24.00",
-      rating: 4.6,
-      image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=300&h=300&fit=crop",
-      url: "https://www.paulaschoice.com/clear-pore-normalizing-cleanser/6140.html"
-    },
-    {
-      id: "10",
-      name: "Benzoyl Peroxide Treatment",
-      brand: "Neutrogena",
-      price: "$12.99",
-      rating: 4.3,
-      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop",
-      url: "https://www.neutrogena.com/products/skincare/stubborn-acne-am-treatment-with-benzoyl-peroxide/6811047.html"
-    }
-  ]
-};
-
-function detectProductKeywords(text: string): Product[] {
-  const lowerText = text.toLowerCase();
-  const foundProducts: Product[] = [];
-  const addedIds = new Set<string>();
-
-  for (const [keyword, products] of Object.entries(PRODUCT_DATABASE)) {
-    if (lowerText.includes(keyword)) {
-      products.forEach(product => {
-        if (!addedIds.has(product.id)) {
-          foundProducts.push(product);
-          addedIds.add(product.id);
-        }
-      });
-    }
-  }
-
-  return foundProducts.slice(0, 4);
-}
-
-function ProductCard({ product }: { product: Product }) {
+function ProductListRow({ product }: { product: Product }) {
   return (
-    <a
-      href={product.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group block bg-white rounded-2xl overflow-hidden border-2 border-gray-100 hover:border-pink-300 hover:shadow-lg transition-all"
-    >
-      <div className="aspect-square bg-gray-50 overflow-hidden">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-      </div>
-      <div className="p-4">
-        <div className="text-xs text-gray-500 mb-1">{product.brand}</div>
-        <div className="font-medium text-sm mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors">
-          {product.name}
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium">{product.rating}</span>
-          </div>
-          <div className="font-bold text-pink-600">{product.price}</div>
-        </div>
-        <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
-          <span>View product</span>
-          <ExternalLink className="w-3 h-3" />
+    <div className="px-4 py-4 sm:px-5 sm:py-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+      <div className="min-w-0 flex-1 space-y-2">
+        <span className="inline-block text-[10px] font-bold uppercase tracking-wider text-pink-700 bg-pink-100/90 px-2.5 py-1 rounded-md">
+          {product.category}
+        </span>
+        <h4 className="text-base font-semibold text-gray-900 leading-snug pr-2">{product.name}</h4>
+        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{product.description}</p>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 pt-1">
+          <span className="font-medium text-gray-600">{product.brand}</span>
+          <span className="flex items-center gap-1 tabular-nums">
+            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" aria-hidden />
+            <span>
+              <span className="font-semibold text-gray-800">{product.avgRating.toFixed(1)}</span> avg
+            </span>
+          </span>
         </div>
       </div>
-    </a>
+      <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 shrink-0 sm:min-w-[7.5rem] border-t border-gray-100 sm:border-0 pt-3 sm:pt-0">
+        <div className="font-bold text-lg text-pink-600 tabular-nums">{product.price}</div>
+        <a
+          href={product.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white text-sm font-semibold px-5 py-2.5 shadow-md hover:shadow-lg hover:opacity-95 transition-all w-full sm:w-auto"
+        >
+          <ShoppingBag className="w-4 h-4 shrink-0" />
+          Buy now
+          <ExternalLink className="w-3.5 h-3.5 opacity-90 shrink-0" />
+        </a>
+      </div>
+    </div>
   );
-}
-
-async function callGeminiAPI(userMessage: string): Promise<string> {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "YOUR_API_KEY_HERE";
-  
-  if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return `Thank you for asking! Here's what I recommend for your skincare concern:\n\n1. Start with a gentle cleanser suited to your skin type\n2. Use a hydrating serum with ingredients like hyaluronic acid\n3. Don't forget SPF 30+ sunscreen every morning\n4. Keep your routine consistent for best results\n\nWould you like specific product recommendations?`;
-  }
-
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent`;
-    
-    const payload = {
-      contents: [
-        {
-          parts: [
-            { 
-              text: `You are a helpful skincare AI assistant. Provide clear, friendly advice about skincare. User question: ${userMessage}` 
-            },
-          ],
-        },
-      ],
-    };
-    
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!text) {
-      throw new Error("No text in API response");
-    }
-    
-    return text;
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    return `I'm having trouble connecting right now. Here's some general skincare advice:\n\n• Cleanse gently twice daily\n• Use sunscreen every day\n• Stay hydrated\n• Be consistent with your routine\n\nPlease try again in a moment!`;
-  }
 }
 
 export default function SkincareAIDashboard() {
@@ -249,25 +77,53 @@ export default function SkincareAIDashboard() {
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
     try {
-      const aiResponse = await callGeminiAPI(userText);
-      const detectedProducts = detectProductKeywords(aiResponse);
-      
+      const res = await fetch("/api/skincare-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userText }),
+      });
+      const data = (await res.json()) as {
+        advice?: string;
+        products?: Product[];
+        error?: string;
+        raw?: string;
+      };
+
+      if (!res.ok) {
+        throw new Error(data.error ?? `Request failed (${res.status})`);
+      }
+
+      const aiResponse =
+        data.advice ??
+        "I could not generate advice this time. Please try again.";
+      const products = Array.isArray(data.products) ? data.products : [];
+
       const item: ChatItem = {
         id: tempId,
         user: userText,
         response: aiResponse,
-        products: detectedProducts,
+        products: products.length > 0 ? products : undefined,
         createdAt: Date.now(),
       };
-      
+
       setItems((prev) => [item, ...prev]);
       setActiveId(tempId);
-      
+
       setTimeout(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     } catch (error) {
       console.error("Submit Error:", error);
+      const errMsg =
+        error instanceof Error ? error.message : "Something went wrong.";
+      const item: ChatItem = {
+        id: tempId,
+        user: userText,
+        response: `Sorry — ${errMsg}\n\nTip: confirm your API key is set and that Grounding with Google Search is enabled for your Gemini project.`,
+        createdAt: Date.now(),
+      };
+      setItems((prev) => [item, ...prev]);
+      setActiveId(tempId);
     } finally {
       setIsLoading(false);
     }
@@ -391,14 +247,17 @@ export default function SkincareAIDashboard() {
 
                   {/* Product Recommendations */}
                   {activeItem.products && activeItem.products.length > 0 && (
-                    <div className="mt-6">
-                      <div className="flex items-center gap-2 mb-4">
+                    <div className="mt-6 w-full max-w-2xl">
+                      <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="w-5 h-5 text-pink-600" />
-                        <h3 className="font-semibold text-gray-800">Recommended Products</h3>
+                        <h3 className="font-semibold text-gray-800">Recommended products</h3>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <p className="text-xs text-gray-500 mb-3">
+                        Average ratings are illustrative. Prices are approximate. “Buy now” opens Google Shopping in India.
+                      </p>
+                      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm divide-y divide-gray-100 overflow-hidden">
                         {activeItem.products.map((product) => (
-                          <ProductCard key={product.id} product={product} />
+                          <ProductListRow key={product.id} product={product} />
                         ))}
                       </div>
                     </div>
